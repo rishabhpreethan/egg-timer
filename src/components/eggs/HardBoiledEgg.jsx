@@ -17,26 +17,12 @@ const HardBoiledEgg = () => {
       className="egg-card"
     >
       <Link to={`/timer/${eggData.id}`} className="block">
-        <div className="flex items-center gap-6">
-          <div className="w-16 h-16 flex items-center justify-center bg-yellow-100 rounded-lg">
-            <span className="text-4xl">{eggData.icon}</span>
-          </div>
-          <div className="flex-1">
-            <h3 className="pixel-font text-xl mb-2">{eggData.name}</h3>
-            <p className="text-gray-600 text-sm mb-3">{eggData.description}</p>
-            <div className="flex items-center gap-2">
-              <div className="bg-yellow-100 px-3 py-1 rounded-lg text-sm font-medium text-yellow-900">
-                {Math.floor(eggData.time / 60)}:{(eggData.time % 60).toString().padStart(2, '0')}
-              </div>
-              <motion.div 
-                whileHover={{ x: 4 }}
-                className="ml-auto text-yellow-900"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="square" strokeLinejoin="square" strokeWidth={3} d="M9 5l7 7-7 7" />
-                </svg>
-              </motion.div>
-            </div>
+        <div className="text-center">
+          <div className="text-4xl mb-4">{eggData.icon}</div>
+          <h3 className="pixel-font text-lg mb-2">{eggData.name}</h3>
+          <p className="mb-4">{eggData.description}</p>
+          <div className="time-badge inline-block">
+            {Math.floor(eggData.time / 60)}:{(eggData.time % 60).toString().padStart(2, '0')}
           </div>
         </div>
       </Link>
@@ -44,4 +30,4 @@ const HardBoiledEgg = () => {
   )
 }
 
-export default HardBoiledEgg;
+export default HardBoiledEgg

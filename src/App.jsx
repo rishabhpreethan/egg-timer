@@ -4,11 +4,13 @@ import TimerPage from './components/TimerPage'
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/timer/:type" element={<TimerPage />} />
-      </Routes>
+    <Router basename="/egg-timer">
+      <div className="bg-[#fef3c7] min-h-screen">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/timer/:eggType" element={<TimerPage />} />
+        </Routes>
+      </div>
     </Router>
   )
 }

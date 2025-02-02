@@ -1,50 +1,16 @@
 import { useState, useEffect, useRef } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
-
-const CircularProgress = ({ progress, size = 200, strokeWidth = 15 }) => {
-  const radius = (size - strokeWidth) / 2
-  const circumference = radius * 2 * Math.PI
-  const offset = circumference - (progress / 100) * circumference
-
-  return (
-    <svg width={size} height={size} className="transform -rotate-90">
-      <circle
-        className="stroke-gray-200"
-        strokeWidth={strokeWidth}
-        fill="transparent"
-        r={radius}
-        cx={size / 2}
-        cy={size / 2}
-      />
-      <circle
-        className="progress-ring__circle"
-        strokeWidth={strokeWidth}
-        fill="transparent"
-        r={radius}
-        cx={size / 2}
-        cy={size / 2}
-        style={{
-          strokeDasharray: circumference,
-          strokeDashoffset: offset
-        }}
-      />
-    </svg>
-  )
-}
+import { useParams, Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 
 const TimerPage = () => {
-  const { type } = useParams()
-  const navigate = useNavigate()
-  const [timeLeft, setTimeLeft] = useState(null)
+  const { eggType } = useParams()
+  const [duration, setDuration] = useState(0)
+  const [timeLeft, setTimeLeft] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
-  const [isComplete, setIsComplete] = useState(false)
-  const [currentTip, setCurrentTip] = useState(0)
-  const audioRef = useRef(null)
-  
+  const timerRef = useRef(null)
+
   const eggTypes = {
     'soft-boiled': {
-      id: 'soft-boiled',
       name: 'Soft Boiled',
       time: 180,
       description: 'Runny yolk, soft white',
@@ -52,7 +18,6 @@ const TimerPage = () => {
       tips: ['Room temperature eggs', 'Fresh eggs work best', 'Plunge in ice water after cooking']
     },
     'medium-boiled': {
-      id: 'medium-boiled',
       name: 'Medium Boiled',
       time: 300,
       description: 'Jammy yolk, firm white',
@@ -60,7 +25,6 @@ const TimerPage = () => {
       tips: ['Don\'t overcrowd the pot', 'Use a timer', 'Gentle simmer, not rolling boil']
     },
     'hard-boiled': {
-      id: 'hard-boiled',
       name: 'Hard Boiled',
       time: 420,
       description: 'Fully cooked yolk and white',
@@ -68,7 +32,6 @@ const TimerPage = () => {
       tips: ['Older eggs peel easier', 'Add vinegar to water', 'Don\'t skip the ice bath']
     },
     'poached': {
-      id: 'poached',
       name: 'Poached',
       time: 180,
       description: 'Perfect for breakfast',
@@ -76,150 +39,112 @@ const TimerPage = () => {
       tips: ['Fresh eggs only', 'Create a water vortex', 'Add a splash of vinegar']
     }
   }
-  
-  const eggType = eggTypes[type]
-  
+
+  const currentEgg = eggTypes[eggType]
+
   useEffect(() => {
-    if (!eggType) {
-      navigate('/')
-      return
-    }
-    setTimeLeft(eggType.time)
-    setIsRunning(false)
-    setIsComplete(false)
-    audioRef.current = new Audio('/timer-complete.mp3')
-  }, [eggType, navigate])
-  
+    const searchParams = new URLSearchParams(window.location.search);
+    const urlDuration = parseInt(searchParams.get('duration')) || 0;
+    setDuration(urlDuration);
+    setTimeLeft(urlDuration);
+  }, [eggType])
+
   useEffect(() => {
-    let timer
     if (isRunning && timeLeft > 0) {
-      timer = setInterval(() => {
-        setTimeLeft(prev => {
-          const newTime = prev - 1
-          if (newTime <= 0) {
-            setIsRunning(false)
-            setIsComplete(true)
-            audioRef.current?.play()
-            return 0
-          }
-          return newTime
-        })
-      }, 1000)
-    }
-    return () => {
-      if (timer) clearInterval(timer)
+      const interval = setInterval(() => {
+        setTimeLeft((prevTime) => prevTime - 1);
+      }, 1000);
+
+      return () => clearInterval(interval);
     }
   }, [isRunning, timeLeft])
 
-  useEffect(() => {
-    if (isRunning) {
-      const tipInterval = setInterval(() => {
-        setCurrentTip(prev => (prev + 1) % eggType.tips.length)
-      }, 5000)
-      return () => clearInterval(tipInterval)
+  const toggleTimer = () => {
+    console.log('Toggle timer. Current state:', isRunning)
+    if (timeLeft === 0) {
+      console.log('Resetting time to:', duration)
+      setTimeLeft(duration)
     }
-  }, [isRunning, eggType.tips.length])
-  
-  if (!eggType) return null
-  
+    setIsRunning(!isRunning)
+  }
+
+  const resetTimer = () => {
+    console.log('Resetting timer')
+    setIsRunning(false)
+    if (timerRef.current) {
+      clearInterval(timerRef.current)
+    }
+    setTimeLeft(duration)
+  }
+
+  if (!currentEgg) {
+    return <div>Egg type not found</div>
+  }
+
   const minutes = Math.floor(timeLeft / 60)
   const seconds = timeLeft % 60
-  const progress = ((eggType.time - timeLeft) / eggType.time) * 100
-  
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="w-full max-w-lg"
-      >
-        <div className="pixel-border p-8 bg-white">
+    <div className="min-h-screen pt-32 pb-12">
+      <div className="max-w-2xl mx-auto main-content">
+        <div className="pixel-border mb-8 p-6 bg-white">
           <div className="window-controls">
             <div className="window-button close"></div>
             <div className="window-button minimize"></div>
           </div>
           
-          <div className="relative z-10">
-            <div className="flex justify-between items-center mb-8">
-              <Link 
-                to="/"
-                className="pixel-button text-sm"
+          <Link to="/" className="pixel-button inline-block mb-8 text-sm">
+            ← Back to Eggs
+          </Link>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
+          >
+            <div className="text-6xl mb-6">{currentEgg.icon}</div>
+            <h1 className="pixel-font text-3xl mb-4">{currentEgg.name}</h1>
+            <p className="text-gray-600 mb-8">{currentEgg.description}</p>
+
+            <div className="timer-display text-6xl mb-8">
+              {minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}
+            </div>
+
+            <div className="flex justify-center gap-4 mb-8">
+              <button 
+                onClick={toggleTimer}
+                className="pixel-button"
               >
-                ← Back
-              </Link>
-              <h2 className="pixel-font text-xl">{eggType.name}</h2>
+                {isRunning ? 'Pause' : timeLeft === 0 ? 'Restart' : 'Start'}
+              </button>
+              <button 
+                onClick={resetTimer}
+                className="pixel-button"
+              >
+                Reset
+              </button>
             </div>
-            
-            <div className="flex flex-col items-center">
-              <div className="relative mb-8">
-                <CircularProgress progress={progress} />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="timer-display text-4xl mb-2">
-                      {minutes}:{seconds.toString().padStart(2, '0')}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      {isRunning ? 'Cooking in progress...' : 'Ready to cook'}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <AnimatePresence mode="wait">
-                {isComplete ? (
-                  <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0, opacity: 0 }}
-                    className="text-center space-y-4"
+
+            <div className="tips-section mt-12 text-left">
+              <h2 className="pixel-font text-xl mb-4">Pro Tips:</h2>
+              <ul className="list-none p-0">
+                {currentEgg.tips.map((tip, index) => (
+                  <motion.li
+                    key={index}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.2 }}
+                    className="mb-3 flex items-center"
                   >
-                    <div className="pixel-font text-2xl mb-4">Your egg is ready! 🎉</div>
-                    <button
-                      onClick={() => {
-                        setTimeLeft(eggType.time)
-                        setIsComplete(false)
-                      }}
-                      className="pixel-button"
-                    >
-                      Cook Another Egg
-                    </button>
-                  </motion.div>
-                ) : (
-                  <div className="space-y-6 w-full">
-                    <button
-                      onClick={() => setIsRunning(!isRunning)}
-                      className="pixel-button w-full"
-                    >
-                      {isRunning ? 'Pause Timer' : 'Start Timer'}
-                    </button>
-                    
-                    {isRunning && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="pixel-border p-4"
-                      >
-                        <div className="pixel-font text-sm mb-2">Cooking Tip:</div>
-                        <AnimatePresence mode="wait">
-                          <motion.p
-                            key={currentTip}
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            className="text-sm text-gray-600"
-                          >
-                            {eggType.tips[currentTip]}
-                          </motion.p>
-                        </AnimatePresence>
-                      </motion.div>
-                    )}
-                  </div>
-                )}
-              </AnimatePresence>
+                    <span className="text-2xl mr-3">✦</span>
+                    <span className="text-gray-700">{tip}</span>
+                  </motion.li>
+                ))}
+              </ul>
             </div>
-          </div>
+          </motion.div>
         </div>
-      </motion.div>
+      </div>
     </div>
   )
 }
