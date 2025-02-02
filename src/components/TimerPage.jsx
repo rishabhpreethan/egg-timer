@@ -195,7 +195,9 @@ const TimerPage = () => {
   const [timeLeft, setTimeLeft] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
+  const [audioEnabled, setAudioEnabled] = useState(false)
   const timerRef = useRef(null)
+  const audioRef = useRef(new Audio('/sounds/timer-end.mp3'))
 
   const eggTypes = {
     'soft-boiled': {
@@ -237,6 +239,19 @@ const TimerPage = () => {
     setTimeLeft(urlDuration);
   }, [eggType])
 
+  // Initialize audio with user interaction
+  const initializeAudio = () => {
+    audioRef.current.volume = 0.7;
+    audioRef.current.play().then(() => {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setAudioEnabled(true);
+      console.log('Audio initialized successfully');
+    }).catch(error => {
+      console.log('Error initializing audio:', error);
+    });
+  };
+
   useEffect(() => {
     if (isRunning && timeLeft > 0) {
       const interval = setInterval(() => {
@@ -244,6 +259,13 @@ const TimerPage = () => {
           if (prevTime <= 1) {
             setIsRunning(false);
             setShowConfetti(true);
+            // Play sound if enabled
+            if (audioEnabled && audioRef.current) {
+              audioRef.current.currentTime = 0;
+              audioRef.current.play().catch(error => {
+                console.log('Error playing sound:', error);
+              });
+            }
             toast.success(`Your ${currentEgg.name} egg is ready!`, {
               icon: currentEgg.icon,
               style: {
@@ -292,6 +314,20 @@ const TimerPage = () => {
 
   return (
     <Container>
+      {!audioEnabled && (
+        <Button
+          onClick={initializeAudio}
+          style={{
+            position: 'fixed',
+            top: '1rem',
+            right: '1rem',
+            fontSize: '0.875rem',
+            padding: '8px 16px',
+          }}
+        >
+          🔔 Enable Sound
+        </Button>
+      )}
       {showConfetti && <Confetti
         width={window.innerWidth}
         height={window.innerHeight}
