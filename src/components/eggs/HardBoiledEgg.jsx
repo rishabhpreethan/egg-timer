@@ -16,7 +16,7 @@ const HardBoiledEgg = () => {
       whileHover={{ y: -4 }}
       className="egg-card"
     >
-      <Link to={`/timer/${eggData.id}`} className="block">
+      <Link to={`/timer/${eggData.id}?duration=${eggData.time}`} className="block">
         <div className="text-center">
           <div className="text-4xl mb-4">{eggData.icon}</div>
           <h3 className="pixel-font text-lg mb-2">{eggData.name}</h3>

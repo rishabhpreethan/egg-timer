@@ -1,6 +1,185 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import styled from '@emotion/styled'
+
+// Styled Components
+const Container = styled.div`
+  min-height: 100vh;
+  padding-top: 8rem;
+  padding-bottom: 3rem;
+  background: #fef9e7;
+`
+
+const MainContent = styled.div`
+  max-width: 32rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+`
+
+const Window = styled.div`
+  position: relative;
+  background: white;
+  padding: 4px;
+  margin-bottom: 2rem;
+  box-shadow: 
+    /* Outer white border */
+    -4px -4px 0 2px #ffffff,
+    4px 4px 0 2px #ffffff,
+    -4px 4px 0 2px #ffffff,
+    4px -4px 0 2px #ffffff,
+    /* Inner black border */
+    -6px -6px 0 2px #4a5568,
+    6px 6px 0 2px #4a5568,
+    -6px 6px 0 2px #4a5568,
+    6px -6px 0 2px #4a5568;
+`
+
+const WindowControls = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+`
+
+const WindowButton = styled.div`
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: ${props => props.color};
+`
+
+const Content = styled.div`
+  padding: 1.5rem;
+`
+
+const BackButton = styled(Link)`
+  font-family: 'Press Start 2P', cursive;
+  padding: 12px 24px;
+  background: #fbbf24;
+  color: #7c2d12;
+  font-size: 16px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  border-radius: 8px;
+  text-decoration: none;
+  display: inline-block;
+  margin-bottom: 2rem;
+  box-shadow: 
+    /* Light border */
+    -2px -2px 0 1px #fde68a,
+    2px 2px 0 1px #fde68a,
+    -2px 2px 0 1px #fde68a,
+    2px -2px 0 1px #fde68a,
+    /* Dark border */
+    -4px -4px 0 1px #f59e0b,
+    4px 4px 0 1px #f59e0b,
+    -4px 4px 0 1px #f59e0b,
+    4px -4px 0 1px #f59e0b;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      /* Light border */
+      -2px -2px 0 1px #fde68a,
+      2px 2px 0 1px #fde68a,
+      -2px 2px 0 1px #fde68a,
+      2px -2px 0 1px #fde68a,
+      /* Dark border */
+      -4px -4px 0 1px #f59e0b,
+      4px 4px 0 1px #f59e0b,
+      -4px 4px 0 1px #f59e0b,
+      4px -4px 0 1px #f59e0b,
+      /* Bottom shadow */
+      0 6px 0 0 #f59e0b;
+  }
+`
+
+const TimerDisplay = styled.div`
+  font-family: 'Press Start 2P', cursive;
+  color: #4a5568;
+  text-shadow: 4px 4px 0px rgba(0,0,0,0.1);
+  letter-spacing: 4px;
+  background: #f7e9b9;
+  padding: 24px;
+  border-radius: 16px;
+  display: inline-block;
+  font-size: 4rem;
+  margin-bottom: 2rem;
+  box-shadow: 
+    -2px -2px 0 2px #ffffff,
+    -4px -4px 0 2px #4a5568,
+    4px 4px 0 2px #4a5568,
+    -4px 4px 0 2px #4a5568,
+    4px -4px 0 2px #4a5568;
+`
+
+const Button = styled.button`
+  font-family: 'Press Start 2P', cursive;
+  padding: 12px 24px;
+  background: #fbbf24;
+  border: none;
+  color: #7c2d12;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  border-radius: 8px;
+  box-shadow: 
+    /* Light border */
+    -2px -2px 0 1px #fde68a,
+    2px 2px 0 1px #fde68a,
+    -2px 2px 0 1px #fde68a,
+    2px -2px 0 1px #fde68a,
+    /* Dark border */
+    -4px -4px 0 1px #f59e0b,
+    4px 4px 0 1px #f59e0b,
+    -4px 4px 0 1px #f59e0b,
+    4px -4px 0 1px #f59e0b;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      /* Light border */
+      -2px -2px 0 1px #fde68a,
+      2px 2px 0 1px #fde68a,
+      -2px 2px 0 1px #fde68a,
+      2px -2px 0 1px #fde68a,
+      /* Dark border */
+      -4px -4px 0 1px #f59e0b,
+      4px 4px 0 1px #f59e0b,
+      -4px 4px 0 1px #f59e0b,
+      4px -4px 0 1px #f59e0b,
+      /* Bottom shadow */
+      0 6px 0 0 #f59e0b;
+  }
+`
+
+const TipsSection = styled.div`
+  margin-top: 3rem;
+  text-align: left;
+`
+
+const TipsList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 0;
+`
+
+const TipItem = styled(motion.li)`
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #4a5568;
+`
 
 const TimerPage = () => {
   const { eggType } = useParams()
@@ -85,67 +264,84 @@ const TimerPage = () => {
   const seconds = timeLeft % 60
 
   return (
-    <div className="min-h-screen pt-32 pb-12">
-      <div className="max-w-2xl mx-auto main-content">
-        <div className="pixel-border mb-8 p-6 bg-white">
-          <div className="window-controls">
-            <div className="window-button close"></div>
-            <div className="window-button minimize"></div>
-          </div>
+    <Container>
+      <MainContent>
+        <Window>
+          <WindowControls>
+            <WindowButton color="#ff5f57" />
+            <WindowButton color="#ffbd2e" />
+          </WindowControls>
           
-          <Link to="/" className="pixel-button inline-block mb-8 text-sm">
-            ← Back to Eggs
-          </Link>
+          <Content>
+            <BackButton to="/" style={{ fontSize: '12px' }}>
+              ← Back to Eggs
+            </BackButton>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center"
-          >
-            <div className="text-6xl mb-6">{currentEgg.icon}</div>
-            <h1 className="pixel-font text-3xl mb-4">{currentEgg.name}</h1>
-            <p className="text-gray-600 mb-8">{currentEgg.description}</p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              style={{ textAlign: 'center' }}
+            >
+              <div style={{ fontSize: '4rem', marginBottom: '1.5rem' }}>{currentEgg.icon}</div>
+              <h1 style={{ 
+                fontFamily: "'Press Start 2P', cursive",
+                fontSize: '2rem',
+                marginBottom: '1rem',
+                color: '#4a5568'
+              }}>
+                {currentEgg.name}
+              </h1>
+              <p style={{ 
+                color: '#4a5568',
+                marginBottom: '2rem',
+                fontFamily: "'Press Start 2P', cursive",
+                fontSize: '14px',
+                lineHeight: '1.6'
+              }}>
+                {currentEgg.description}
+              </p>
 
-            <div className="timer-display text-6xl mb-8">
-              {minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}
-            </div>
+              <TimerDisplay>
+                {minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}
+              </TimerDisplay>
 
-            <div className="flex justify-center gap-4 mb-8">
-              <button 
-                onClick={toggleTimer}
-                className="pixel-button"
-              >
-                {isRunning ? 'Pause' : timeLeft === 0 ? 'Restart' : 'Start'}
-              </button>
-              <button 
-                onClick={resetTimer}
-                className="pixel-button"
-              >
-                Reset
-              </button>
-            </div>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '2rem' }}>
+                <Button onClick={toggleTimer}>
+                  {isRunning ? 'Pause' : timeLeft === 0 ? 'Restart' : 'Start'}
+                </Button>
+                <Button onClick={resetTimer}>
+                  Reset
+                </Button>
+              </div>
 
-            <div className="tips-section mt-12 text-left">
-              <h2 className="pixel-font text-xl mb-4">Pro Tips:</h2>
-              <ul className="list-none p-0">
-                {currentEgg.tips.map((tip, index) => (
-                  <motion.li
-                    key={index}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.2 }}
-                    className="mb-3 flex items-center"
-                  >
-                    <span className="text-2xl mr-3">✦</span>
-                    <span className="text-gray-700">{tip}</span>
-                  </motion.li>
-                ))}
-              </ul>
-            </div>
-          </motion.div>
-        </div>
-      </div>
-    </div>
+              <TipsSection>
+                <h2 style={{ 
+                  fontFamily: "'Press Start 2P', cursive",
+                  fontSize: '1.25rem',
+                  marginBottom: '1rem',
+                  color: '#4a5568'
+                }}>
+                  Pro Tips:
+                </h2>
+                <TipsList>
+                  {currentEgg.tips.map((tip, index) => (
+                    <TipItem
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.2 }}
+                    >
+                      <span style={{ fontSize: '1.5rem', marginRight: '0.75rem', color: '#f59e0b' }}>✦</span>
+                      <span>{tip}</span>
+                    </TipItem>
+                  ))}
+                </TipsList>
+              </TipsSection>
+            </motion.div>
+          </Content>
+        </Window>
+      </MainContent>
+    </Container>
   )
 }
 
