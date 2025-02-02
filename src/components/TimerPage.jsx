@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import styled from '@emotion/styled'
+import Confetti from 'react-confetti'
+import toast, { Toaster } from 'react-hot-toast'
 
 // Styled Components
 const Container = styled.div`
@@ -186,6 +188,7 @@ const TimerPage = () => {
   const [duration, setDuration] = useState(0)
   const [timeLeft, setTimeLeft] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
+  const [showConfetti, setShowConfetti] = useState(false)
   const timerRef = useRef(null)
 
   const eggTypes = {
@@ -231,12 +234,30 @@ const TimerPage = () => {
   useEffect(() => {
     if (isRunning && timeLeft > 0) {
       const interval = setInterval(() => {
-        setTimeLeft((prevTime) => prevTime - 1);
+        setTimeLeft((prevTime) => {
+          if (prevTime <= 1) {
+            setIsRunning(false);
+            setShowConfetti(true);
+            toast.success(`Your ${currentEgg.name} egg is ready!`, {
+              icon: currentEgg.icon,
+              style: {
+                fontFamily: "'Press Start 2P', cursive",
+                fontSize: '14px',
+                padding: '16px',
+                background: '#fef9e7',
+                border: '4px solid #4a5568',
+              },
+              duration: 5000,
+            });
+            setTimeout(() => setShowConfetti(false), 5000);
+          }
+          return prevTime - 1;
+        });
       }, 1000);
 
       return () => clearInterval(interval);
     }
-  }, [isRunning, timeLeft])
+  }, [isRunning, timeLeft, currentEgg])
 
   const toggleTimer = () => {
     console.log('Toggle timer. Current state:', isRunning)
@@ -265,6 +286,14 @@ const TimerPage = () => {
 
   return (
     <Container>
+      {showConfetti && <Confetti
+        width={window.innerWidth}
+        height={window.innerHeight}
+        recycle={false}
+        numberOfPieces={500}
+        gravity={0.3}
+      />}
+      <Toaster position="top-center" />
       <MainContent>
         <Window>
           <WindowControls>

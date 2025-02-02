@@ -5,7 +5,7 @@ const SoftBoiledEgg = () => {
   const eggData = {
     id: 'soft-boiled',
     name: 'Soft Boiled',
-    time: 180,
+    time: 5,
     description: 'Runny yolk, soft white',
     icon: '🥚',
     tips: ['Room temperature eggs', 'Fresh eggs work best', 'Plunge in ice water after cooking']
