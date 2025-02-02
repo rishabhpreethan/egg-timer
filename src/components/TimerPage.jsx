@@ -106,12 +106,12 @@ const TimerDisplay = styled.div`
   font-family: 'Press Start 2P', cursive;
   color: #4a5568;
   text-shadow: 4px 4px 0px rgba(0,0,0,0.1);
-  letter-spacing: 4px;
+  letter-spacing: 2px;
   background: #f7e9b9;
-  padding: 24px;
+  padding: 16px;
   border-radius: 16px;
   display: inline-block;
-  font-size: 4rem;
+  font-size: 2rem;
   margin-bottom: 2rem;
   box-shadow: 
     -2px -2px 0 2px #ffffff,
@@ -119,6 +119,12 @@ const TimerDisplay = styled.div`
     4px 4px 0 2px #4a5568,
     -4px 4px 0 2px #4a5568,
     4px -4px 0 2px #4a5568;
+
+  @media (min-width: 640px) {
+    font-size: 3rem;
+    padding: 20px;
+    letter-spacing: 4px;
+  }
 `
 
 const Button = styled.button`
