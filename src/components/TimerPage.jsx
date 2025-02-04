@@ -1,9 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+
 import styled from '@emotion/styled'
 import Confetti from 'react-confetti'
 import toast, { Toaster } from 'react-hot-toast'
+
+// Simple beep sound in base64
+const BEEP_SOUND = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2Df4B6hX99eG9vY15ZVEhTVk1JSFNZaX2Dg4eFiYiFbF1fdH2Df4B6hX99eG9vY15ZVEhTVk1JSFNZaX2Dg4eFiYiFbF1fdH2Df4B6hX99eG9vY15ZVEhTVk1JSFNZaX2Dg4eFiYiFbF1fdH2Df4B6hX99eG9vY15ZVEhTVk1JSFNZaX2Dg4eF'
 
 // Styled Components
 const Container = styled.div`
@@ -196,8 +200,15 @@ const TimerPage = () => {
   const [isRunning, setIsRunning] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
   const [audioEnabled, setAudioEnabled] = useState(false)
+  const [permissionRequested, setPermissionRequested] = useState(false)
   const timerRef = useRef(null)
-  const audioRef = useRef(new Audio('/sounds/timer-end.mp3'))
+  const audioRef = useRef(null)
+
+  useEffect(() => {
+    // Initialize audio ref
+    audioRef.current = new Audio(BEEP_SOUND)
+    audioRef.current.volume = 0.7
+  }, [])
 
   const eggTypes = {
     'soft-boiled': {
@@ -240,52 +251,81 @@ const TimerPage = () => {
   }, [eggType])
 
   // Initialize audio with user interaction
-  const initializeAudio = () => {
-    audioRef.current.volume = 0.7;
-    audioRef.current.play().then(() => {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      setAudioEnabled(true);
-      console.log('Audio initialized successfully');
-    }).catch(error => {
-      console.log('Error initializing audio:', error);
-    });
+  const initializeAudio = async () => {
+    try {
+      if (!audioRef.current) {
+        audioRef.current = new Audio(BEEP_SOUND)
+        audioRef.current.volume = 0.7
+      }
+
+      // Request permission by attempting to play
+      await audioRef.current.play()
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
+      
+      setAudioEnabled(true)
+      setPermissionRequested(true)
+      toast.success('Sound enabled! 🔔', {
+        style: {
+          fontFamily: "'Press Start 2P', cursive",
+          fontSize: '14px',
+        }
+      })
+      console.log('Audio initialized successfully')
+    } catch (error) {
+      console.error('Error initializing audio:', error)
+      toast.error('Could not enable sound 🔕', {
+        style: {
+          fontFamily: "'Press Start 2P', cursive",
+          fontSize: '14px',
+        }
+      })
+    }
   };
 
   useEffect(() => {
     if (isRunning && timeLeft > 0) {
       const interval = setInterval(() => {
-        setTimeLeft((prevTime) => {
-          if (prevTime <= 1) {
-            setIsRunning(false);
-            setShowConfetti(true);
-            // Play sound if enabled
-            if (audioEnabled && audioRef.current) {
-              audioRef.current.currentTime = 0;
-              audioRef.current.play().catch(error => {
-                console.log('Error playing sound:', error);
-              });
-            }
-            toast.success(`Your ${currentEgg.name} egg is ready!`, {
-              icon: currentEgg.icon,
-              style: {
-                fontFamily: "'Press Start 2P', cursive",
-                fontSize: '14px',
-                padding: '16px',
-                background: '#fef9e7',
-                border: '4px solid #4a5568',
-              },
-              duration: 5000,
-            });
-            setTimeout(() => setShowConfetti(false), 5000);
-          }
-          return prevTime - 1;
+        setTimeLeft(prevTime => {
+          const newTime = prevTime - 1;
+          return newTime;
         });
       }, 1000);
 
       return () => clearInterval(interval);
     }
-  }, [isRunning, timeLeft, currentEgg])
+  }, [isRunning]);
+
+  // Separate effect to handle timer completion
+  useEffect(() => {
+    if (timeLeft === 0 && isRunning) {
+      setIsRunning(false);
+      setShowConfetti(true);
+      
+      // Play sound if enabled
+      if (audioEnabled && audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch(error => {
+          console.log('Error playing sound:', error);
+        });
+      }
+
+      toast.success(`Your ${currentEgg.name} egg is ready!`, {
+        icon: currentEgg.icon,
+        style: {
+          fontFamily: "'Press Start 2P', cursive",
+          fontSize: '14px',
+          padding: '16px',
+          background: '#fef9e7',
+          border: '4px solid #4a5568',
+        },
+        duration: 5000,
+      });
+
+      const confettiTimer = setTimeout(() => setShowConfetti(false), 5000);
+      return () => clearTimeout(confettiTimer);
+    }
+  }, [timeLeft, isRunning, audioEnabled, currentEgg]);
 
   const toggleTimer = () => {
     console.log('Toggle timer. Current state:', isRunning)
